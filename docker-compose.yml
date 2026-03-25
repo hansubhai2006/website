@@ -1,0 +1,55 @@
+services:
+  mongo:
+    image: mongo:7
+    container_name: gamified_mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: gamified_edu
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    container_name: gamified_backend
+    restart: always
+    ports:
+      - "5000:5000"
+    environment:
+      MONGO_URI: mongodb://admin:password123@mongo:27017/gamified_edu?authSource=admin
+      JWT_SECRET: eduquest_supersecret_jwt_2024
+      PORT: 5000
+      NODE_ENV: production
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - app_network
+
+  frontend:
+    build: ./frontend
+    container_name: gamified_frontend
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - app_network
+
+volumes:
+  mongo_data:
+
+networks:
+  app_network:
+    driver: bridge
