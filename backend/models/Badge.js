@@ -7,5 +7,5 @@ const badgeSchema = new mongoose.Schema({
   description: { type: String },
   earnedAt: { type: Date, default: Date.now }
 });
-
+//
 module.exports = mongoose.model('Badge', badgeSchema);
